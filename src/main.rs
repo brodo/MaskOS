@@ -3,6 +3,12 @@
 #![feature(abi_efiapi)]
 #![feature(lang_items)]
 
+#[macro_use]
+extern crate alloc;
+
+pub mod math;
+pub mod graphics;
+
 use uefi::prelude::*;
 use uefi_services::println;
 use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams, EventType, Tpl, TimerTrigger};
