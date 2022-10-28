@@ -1,3 +1,6 @@
 #!/usr/bin/env sh
-cp startup.nsh target/x86_64-unknown-uefi/release/
-hdiutil create -srcfolder target/x86_64-unknown-uefi/release/ -volname MASKOS -fs FAT32 -ov -format UDTO -layout NONE maskos
+rm -rf target/assets || true
+mkdir target/assets
+cp assets/* target/assets
+
+hdiutil create -srcfolder target/assets -volname MASKOS -fs FAT32 -ov -format UDTO -layout NONE maskos
