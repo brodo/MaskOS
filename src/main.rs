@@ -1,6 +1,7 @@
 #![no_main]
 #![no_std]
 #![feature(abi_efiapi)]
+#![feature(lang_items)]
 
 use uefi::prelude::*;
 use uefi_services::println;
@@ -8,15 +9,9 @@ use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams, EventType, T
 use uefi::proto::console::gop::{BltOp, BltPixel, FrameBuffer, GraphicsOutput, PixelFormat};
 use uefi::proto::console::text::Key;
 
-//const WIDTH: usize = 1920;
-//const HEIGHT: usize = 1080;
-
-//const WIDTH: usize = 1280;
-//const HEIGHT: usize = 1024;
-
 #[entry]
 unsafe fn main(image: Handle, mut system_table: SystemTable<Boot>) -> Status {
-    uefi_services::init(&mut system_table).expect("Failed to init uefi services");
+    uefi_services::init(&mut system_table).expect("failed to init uefi services");
 
     let bt = system_table.boot_services();
 
@@ -38,7 +33,6 @@ unsafe fn main(image: Handle, mut system_table: SystemTable<Boot>) -> Status {
         println!("GOP inited succesfully!");
 
         let (width, height) = choose_graphics_mode(gop, system_table.unsafe_clone(), bt);
-        //set_graphics_mode(gop);
 
         for i in 0..60 {
             fill_color(gop, i*123, i*252, i*184, width, height);
@@ -55,14 +49,17 @@ unsafe fn main(image: Handle, mut system_table: SystemTable<Boot>) -> Status {
 }
 
 fn choose_graphics_mode(gop: &mut GraphicsOutput, mut st: SystemTable<Boot>, bt: &BootServices) -> (usize, usize){
-    let mut mode_index = gop.modes().len()-1;
-    println!("Choose resolution: (After 5 Seconds, mode {} is choosen)", mode_index);
+    let mut mode_index = usize::MAX;
     for i in 0..gop.modes().len() {
         let res = gop.modes().nth(i).unwrap().info().resolution();
-        println!("{:x}: {}x{}", i, res.0, res.1);
+        if let (640, 480) = res {
+            mode_index = i;
+        }
     }
 
-    bt.stall(5000000);
+    if mode_index == usize::MAX {
+        panic!("resolution 640x480 is not available");
+    }
 
     //let timer = bt.create_event(EventType::TIMER, Tpl::APPLICATION, None, None);
     //println!("Timer status: {:?}", timer.status());
@@ -72,43 +69,25 @@ fn choose_graphics_mode(gop: &mut GraphicsOutput, mut st: SystemTable<Boot>, bt:
     //bt.wait_for_event(&mut [timer]).expect("Failed while wating for timer");
     //bt.wait_for_event(&mut [(*system_table.unsafe_clone().stdin().wait_for_key_event()).unsafe_clone()]).expect("Failed while waiting for key");
 
-    if let Some(Key::Printable(character)) = st.stdin().read_key().unwrap() {
-        let character : char = character.into();
-        if let Some(index) = character.to_digit(16) {
-            mode_index = index as usize;
-        } else {
-            println!("Invalid character, choosing default mode");
-        }
-    } else {
-        println!("No or invalid character, choosing default mode");
-    }
+    //if let Some(Key::Printable(character)) = st.stdin().read_key().unwrap() {
+    //    let character : char = character.into();
+    //    if let Some(index) = character.to_digit(16) {
+    //        mode_index = index as usize;
+    //    } else {
+    //        println!("Invalid character, choosing default mode");
+    //    }
+    //} else {
+    //    println!("No or invalid character, choosing default mode");
+    //}
 
     let mode = gop.modes().nth(mode_index).unwrap();
 
-    let res = mode.info().resolution();
-    let width = res.0;
-    let height = res.1;
+    let (width, height) = mode.info().resolution();
 
-    println!("Setting resolution to {}x{}", width, height);
-
-    bt.stall(1000000);
-
-    gop.set_mode(&mode).expect("Failed to set graphics mode");
+    gop.set_mode(&mode).expect("failed to set graphics mode");
 
     (width, height)
 }
-
-//fn set_graphics_mode(gop: &mut GraphicsOutput) {
-//    let mode = gop
-//        .modes()
-//        .find(|mode| {
-//            let info = mode.info();
-//            info.resolution() == (WIDTH, HEIGHT)
-//        })
-//        .expect("Could'nt find required resolution");
-//
-//    gop.set_mode(&mode).expect("Failed to set graphics mode");
-//}
 
 fn fill_color(gop: &mut GraphicsOutput, r: u8, g: u8, b: u8, width: usize, height: usize) {
     let op = BltOp::VideoFill {
@@ -174,3 +153,6 @@ fn draw_fb(gop: &mut GraphicsOutput, width: usize, height: usize) {
         fill_rectangle((x1, y1), (width - x1, height - y1), [r, g, b]);
     }
 }
+
+#[lang = "eh_personality"]
+extern "C" fn eh_personality() {}
