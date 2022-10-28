@@ -40,10 +40,11 @@ unsafe fn main(image: Handle, mut system_table: SystemTable<Boot>) -> Status {
         let (width, height) = choose_graphics_mode(gop, system_table.unsafe_clone(), bt);
         //set_graphics_mode(gop);
 
-        for i in 0..10 {
+        for i in 0..60 {
             fill_color(gop, i*123, i*252, i*184, width, height);
+            bt.stall(16666);
         }
-        draw_fb(gop);
+        draw_fb(gop, width, height);
     }
     else{
         println!("GOP not supported!");
@@ -119,10 +120,9 @@ fn fill_color(gop: &mut GraphicsOutput, r: u8, g: u8, b: u8, width: usize, heigh
     gop.blt(op).expect("Failed to fill screen with color");
 }
 
-fn draw_fb(gop: &mut GraphicsOutput) {
+fn draw_fb(gop: &mut GraphicsOutput, width: usize, height: usize) {
     let mi = gop.current_mode_info();
     let stride = mi.stride();
-    let (width, height) = mi.resolution();
 
     let mut fb = gop.frame_buffer();
 
@@ -156,6 +156,21 @@ fn draw_fb(gop: &mut GraphicsOutput) {
         }
     };
 
-    fill_rectangle((50, 30), (150, 600), [250, 128, 64]);
-    fill_rectangle((400, 120), (750, 450), [16, 128, 255]);
+    let mut x1: usize = 8;
+    let mut y1: usize = 8;
+
+    let mut r: u8 = 231;
+    let mut g: u8 = 242;
+    let mut b: u8 = 137;
+
+    while x1*2 < width && y1*2 < height {
+        x1 *= 2;
+        y1 *= 2;
+
+        r += 231;
+        g += 242;
+        b += 137;
+
+        fill_rectangle((x1, y1), (width - x1, height - y1), [r, g, b]);
+    }
 }
