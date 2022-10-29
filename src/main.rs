@@ -16,7 +16,7 @@ use uefi::proto::console::gop::{BltOp, BltPixel, FrameBuffer, GraphicsOutput, Pi
 use uefi::proto::console::text::{Key, ScanCode};
 
 use math::{Vec2, Color4};
-use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, Sprite};
+use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite};
 
 #[entry]
 unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
@@ -51,6 +51,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         
         /* game loop */
         let mut vfb = VirtualFrameBuffer::new();
+        let mut tile_set = TileSet::default();
 
         println!("Beginning game loop");
 
@@ -101,8 +102,8 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
             vfb.clear(Color4::new(0, 0, 0, 255));
 
-            character.draw(&mut vfb);
-            test.draw(&mut vfb);
+            character.draw(&tile_set, &mut vfb);
+            test.draw(&tile_set, &mut vfb);
 
             draw_vfb_to_fb(&mut fb, stride, &vfb);
 
