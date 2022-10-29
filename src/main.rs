@@ -19,7 +19,7 @@ use uefi::proto::console::text::{Key, ScanCode};
 
 use math::{Vec2, Color4};
 use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite};
-use crate::file_loader::read_file;
+use crate::file_loader::{FileLoader};
 
 #[entry]
 unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
@@ -55,7 +55,8 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         
         /* game loop */
         let mut vfb = VirtualFrameBuffer::new();
-        let tile_set_bytes = read_file(&image, &st, "TileSet.bmp", None).unwrap();
+        let mut file_loader = FileLoader::new(&image, &st);
+        let tile_set_bytes = file_loader.read_file( "TileSet.bmp", None).unwrap();
         let mut tile_set = TileSet::new_from_buffer(tile_set_bytes);
 
         println!("Beginning game loop");
