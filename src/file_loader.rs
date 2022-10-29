@@ -1,13 +1,13 @@
 use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::vec::Vec;
-use uefi::{Char16, CStr16, CString16, Handle};
+
+use uefi::{CString16, Handle};
 use uefi::proto::loaded_image;
 use uefi::proto::media::{file, fs};
-use uefi::proto::media::file::{Directory, File, FileAttribute, FileMode};
+use uefi::proto::media::file::{File, FileAttribute, FileMode};
 use uefi::table::{Boot, SystemTable};
 use uefi_services::println;
-
 
 pub struct FileLoader<'a> {
     image: &'a Handle,
