@@ -146,6 +146,39 @@ impl Default for Entity {
     }
 }
 
+impl Entity {
+    pub fn new_from_id(file_loader: &FileLoader, id: &str) -> Self {
+        let file_name = format!("{}.json", id);
+        let file_byes = file_loader.read_file(&file_name, Some("entities")).unwrap();
+        let file_content_str = core::str::from_utf8(&file_byes).unwrap();
+        let json = parse_json(file_content_str).unwrap();
+        let obj = json.as_object().unwrap();
+        let mut tile_index = 0;
+        let mut wall = false;
+        let mut door_colors:Vec<usize> = vec![];
+        for (key, value) in obj {
+            let key_str = key.iter().map(|c| c.to_string()).collect::<Vec<String>>().join("");
+            if key_str == "tile_index" {
+                tile_index = value.as_number().unwrap().integer as usize;
+            }
+            if key_str == "wall" {
+                wall = value.as_bool().unwrap().to_owned();
+            }
+
+            if key_str == "door_colors" {
+                door_colors = value.as_array().unwrap().iter().map(|item| { item.as_number().unwrap().integer as usize}).collect()
+            }
+        }
+
+
+        Entity {
+            wall,
+            door_colors,
+            tile_index
+        }
+    }
+}
+
 pub struct Sprite {
     pub pos: Vec2,
     pub entities: Vec<Vec<Entity>>,
