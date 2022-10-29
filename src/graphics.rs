@@ -1,5 +1,12 @@
 use alloc::vec::Vec;
+use embedded_graphics::geometry::OriginDimensions;
+use embedded_graphics::Pixel;
+use embedded_graphics::pixelcolor::{Rgb888, RgbColor};
+use embedded_graphics::prelude::Point;
+use tinybmp::{Bmp, Pixels};
+
 use uefi::CStr16;
+use uefi_services::println;
 
 use crate::math::{Vec2, Color4};
 
@@ -61,6 +68,11 @@ pub struct Tile {
 impl Tile {
     pub const WIDTH: usize = 16;
     pub const HEIGHT: usize = 16;
+    fn new_from_pixels(pixels: [[Color4; 16]; 16]) -> Self{
+        Tile {
+            pixels
+        }
+    }
 }
 
 impl Default for Tile {
@@ -76,9 +88,30 @@ pub struct TileSet {
 }
 
 impl TileSet {
-    pub fn new_from_file(path: &CStr16) -> Self {
+    pub fn new_from_buffer(buffer: Vec<u8>) -> Self {
+        let bmp = Bmp::<Rgb888>::from_slice(buffer.as_slice()).unwrap();
+
+        for Pixel(position, color) in bmp.pixels() {
+            println!("R: {}, G: {}, B: {}  @ ({})", color.r(), color.g(), color.b(), position);
+        }
+        let mut tiles: Vec<Tile> = vec![];
+        for tile_x in 0..(bmp.size().width / 16) {
+            for tile_y in 0..(bmp.size().height / 16) {
+                let mut tile_bitmap = [[Color4::new(255, 255, 255, 255); 16]; 16];
+                for x in 0..16 {
+                    let mut row = tile_bitmap[x as usize];
+                    for y in 0..16 {
+                        let point = Point::new((tile_x + x) as i32, (tile_y + y) as i32);
+                        let pixel = bmp.pixel(point).unwrap();
+                        row[y as usize] = Color4::new(pixel.r().into(), pixel.g().into(), pixel.b().into(), 255);
+                    }
+                }
+                tiles.push(Tile::new_from_pixels(tile_bitmap));
+            }
+        }
+
         TileSet {
-            tiles: vec![],
+            tiles,
         }
     }
 }

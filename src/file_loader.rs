@@ -1,3 +1,4 @@
+use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::vec::Vec;
 use uefi::{Char16, CStr16, CString16, Handle};
@@ -8,26 +9,30 @@ use uefi::table::{Boot, SystemTable};
 use uefi_services::println;
 
 
-pub fn read_file(image: &Handle, system_table: &SystemTable<Boot>) {
+pub fn read_file(image: &Handle, system_table: &SystemTable<Boot>, file_name: &str) -> Result<Vec<u8>, String> {
     let mut dir = prepare_file_system(image, system_table);
 
-    let file_name = CString16::try_from("test.txt").unwrap();
-    if let Ok(handle) = dir.open(&file_name, FileMode::Read, FileAttribute::READ_ONLY) {
+    let file_name = CString16::try_from(file_name).unwrap();
+    if let Ok(mut handle) = dir.open(&file_name, FileMode::Read, FileAttribute::READ_ONLY) {
         if let Some(mut regular) = handle.into_regular_file() {
-            let mut buf: [u8; 500] = [0; 500];
-            let bytes_read = regular.read(&mut buf).unwrap();
-            let utf_8_str = core::str::from_utf8(&buf[..bytes_read]).unwrap();
-
-            match CString16::try_from(utf_8_str) {
-                Ok(cstr) => println!("Read string: {}", cstr),
-                Err(e) => println!("{:?}", e)
+            let mut buf: [u8; 500_000] = [0; 500_000];
+            match regular.read(&mut  buf) {
+                Ok(bytes_read) =>Ok(Vec::from(&buf[0..bytes_read])),
+                Err(_) => Err("Could not read file".to_owned())
             }
+
+        } else {
+            Err(format!("'{}' is not a regular file!", file_name).to_owned())
         }
+    } else {
+        Err("Can't open file".to_owned())
     }
+
+
 }
 
 
-pub fn prepare_file_system(image: &Handle, system_table: &SystemTable<Boot>) -> file::Directory {
+fn prepare_file_system(image: &Handle, system_table: &SystemTable<Boot>) -> file::Directory {
     let loaded_image = system_table
         .boot_services()
         .open_protocol_exclusive::<loaded_image::LoadedImage>(*image)
