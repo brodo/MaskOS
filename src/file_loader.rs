@@ -9,26 +9,32 @@ use uefi::table::{Boot, SystemTable};
 use uefi_services::println;
 
 
-pub fn read_file(image: &Handle, system_table: &SystemTable<Boot>, file_name: &str) -> Result<Vec<u8>, String> {
+pub fn read_file(image: &Handle, system_table: &SystemTable<Boot>, file_name: &str, directory: Option<&str>) -> Result<Vec<u8>, String> {
     let mut dir = prepare_file_system(image, system_table);
-
+    if let Some(sub_dir) = directory {
+        let dir_name = CString16::try_from(sub_dir).unwrap();
+        match dir.open(&dir_name, FileMode::Read, FileAttribute::READ_ONLY) {
+            Ok(fh) => dir = fh.into_directory().unwrap(),
+            Err(e) => {
+                println!("{:?}", e);
+                return Err("Could not open directory!".to_owned());
+            }
+        }
+    }
     let file_name = CString16::try_from(file_name).unwrap();
     if let Ok(mut handle) = dir.open(&file_name, FileMode::Read, FileAttribute::READ_ONLY) {
         if let Some(mut regular) = handle.into_regular_file() {
             let mut buf: [u8; 500_000] = [0; 500_000];
-            match regular.read(&mut  buf) {
-                Ok(bytes_read) =>Ok(Vec::from(&buf[0..bytes_read])),
+            match regular.read(&mut buf) {
+                Ok(bytes_read) => Ok(Vec::from(&buf[0..bytes_read])),
                 Err(_) => Err("Could not read file".to_owned())
             }
-
         } else {
             Err(format!("'{}' is not a regular file!", file_name).to_owned())
         }
     } else {
         Err("Can't open file".to_owned())
     }
-
-
 }
 
 
