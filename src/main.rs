@@ -13,8 +13,8 @@ pub mod file_loader;
 
 use uefi::prelude::*;
 use uefi_services::println;
-use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams, EventType, Tpl, TimerTrigger};
-use uefi::proto::console::gop::{BltOp, BltPixel, FrameBuffer, GraphicsOutput, PixelFormat};
+use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams};
+use uefi::proto::console::gop::{ FrameBuffer, GraphicsOutput};
 use uefi::proto::console::text::{Key, ScanCode};
 
 use math::{Vec2, Color4};
@@ -54,9 +54,9 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         
         /* game loop */
         let mut vfb = VirtualFrameBuffer::new();
-        let mut file_loader = FileLoader::new(&image, &st);
+        let file_loader = FileLoader::new(&image, &st);
         let tile_set_bytes = file_loader.read_file( "TileSet.bmp", None).unwrap();
-        let mut tile_set = TileSet::new_from_buffer(tile_set_bytes);
+        let tile_set = TileSet::new_from_buffer(tile_set_bytes);
 
         let level1 = Level::new_from_name(&file_loader, "1");
 
