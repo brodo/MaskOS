@@ -13,13 +13,17 @@ use uefi::prelude::*;
 use uefi_services::println;
 use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams, EventType, Tpl, TimerTrigger};
 use uefi::proto::console::gop::{BltOp, BltPixel, FrameBuffer, GraphicsOutput, PixelFormat};
-use uefi::proto::console::text::Key;
+use uefi::proto::console::text::{Key, ScanCode};
+
+use math::{Vec2, Color4};
+use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, Sprite};
 
 #[entry]
-unsafe fn main(image: Handle, mut system_table: SystemTable<Boot>) -> Status {
-    uefi_services::init(&mut system_table).expect("failed to init uefi services");
+unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
+    uefi_services::init(&mut st).expect("failed to init uefi services");
 
-    let bt = system_table.boot_services();
+    let st_clone = st.unsafe_clone();
+    let bt = st_clone.boot_services();
 
     if let Ok(handle) = bt.get_handle_for_protocol::<GraphicsOutput>() {
         let gop = &mut bt
@@ -29,7 +33,7 @@ unsafe fn main(image: Handle, mut system_table: SystemTable<Boot>) -> Status {
                         agent: image,
                         controller: None,
                     },
-                    // For this test, don't open in exclusive mode. That
+                    // For this character, don't open in exclusive mode. That
                     // would break the connection between stdout and the
                     // video console.
                     OpenProtocolAttributes::GetProtocol,
@@ -38,20 +42,78 @@ unsafe fn main(image: Handle, mut system_table: SystemTable<Boot>) -> Status {
 
         println!("GOP inited succesfully!");
 
-        let (width, height) = choose_graphics_mode(gop, system_table.unsafe_clone(), bt);
+        let (width, height) = choose_graphics_mode(gop, st.unsafe_clone(), bt);
 
-        for i in 0..60 {
-            fill_color(gop, i*123, i*252, i*184, width, height);
-            bt.stall(16666);
+        let mi = gop.current_mode_info();
+        let stride = mi.stride();
+
+        let mut fb = gop.frame_buffer();
+        
+        /* game loop */
+        let mut vfb = VirtualFrameBuffer::new();
+
+        println!("Beginning game loop");
+
+        let mut move_dir = Vec2::new(0, 0);
+        let mut character = Sprite::default();
+
+        let mut test = Sprite::default();
+        test.pos = Vec2::new(100, 100);
+
+        loop {
+            bt.stall(1000);
+
+            match st.stdin().read_key().unwrap() {
+                Some(Key::Special(ScanCode::LEFT)) => {
+                    move_dir = if move_dir[0] == 1 {
+                        Vec2::new(0, 0)
+                    } else {
+                        Vec2::new(-1, 0)
+                    };
+                },
+                Some(Key::Special(ScanCode::RIGHT)) => {
+                    move_dir = if move_dir[0] == -1 {
+                        Vec2::new(0, 0)
+                    } else {
+                        Vec2::new(1, 0)
+                    };
+                },
+                Some(Key::Special(ScanCode::UP)) => {
+                    move_dir = if move_dir[1] == 1 {
+                        Vec2::new(0, 0)
+                    } else {
+                        Vec2::new(0, -1)
+                    };
+                },
+                Some(Key::Special(ScanCode::DOWN)) => {
+                    move_dir = if move_dir[1] == -1 {
+                        Vec2::new(0, 0)
+                    } else {
+                        Vec2::new(0, 1)
+                    };
+                },
+                _ => ()
+            }
+
+            bt.stall(1000);
+
+            character.pos += move_dir;
+
+            vfb.clear(Color4::new(0, 0, 0, 255));
+
+            character.draw(&mut vfb);
+            test.draw(&mut vfb);
+
+            draw_vfb_to_fb(&mut fb, stride, &vfb);
+
+            bt.stall(1000);
         }
-        draw_fb(gop, width, height);
-    }
-    else{
+    } else {
         println!("GOP not supported!");
         panic!();
     }
 
-    Status::SUCCESS
+    //Status::SUCCESS
 }
 
 fn choose_graphics_mode(gop: &mut GraphicsOutput, mut st: SystemTable<Boot>, bt: &BootServices) -> (usize, usize){
@@ -95,70 +157,17 @@ fn choose_graphics_mode(gop: &mut GraphicsOutput, mut st: SystemTable<Boot>, bt:
     (width, height)
 }
 
-fn fill_color(gop: &mut GraphicsOutput, r: u8, g: u8, b: u8, width: usize, height: usize) {
-    let op = BltOp::VideoFill {
-        color: BltPixel::new(r, g, b),
-        dest: (0, 0),
-        dims: (width, height),
-    };
+fn draw_vfb_to_fb(fb: &mut FrameBuffer, stride: usize, vfb: &VirtualFrameBuffer) {
+    for x in 0..vfb.data.len() {
+        for y in 0..vfb.data[0].len() {
+            let pixel_index = (y * stride) + x;
+            let pixel_base = 4 * pixel_index;
+            let color = vfb.data[x][y];
 
-    gop.blt(op).expect("Failed to fill screen with color");
-}
-
-fn draw_fb(gop: &mut GraphicsOutput, width: usize, height: usize) {
-    let mi = gop.current_mode_info();
-    let stride = mi.stride();
-
-    let mut fb = gop.frame_buffer();
-
-    type PixelWriter = unsafe fn(&mut FrameBuffer, usize, [u8; 3]);
-    unsafe fn write_pixel_rgb(fb: &mut FrameBuffer, pixel_base: usize, rgb: [u8; 3]) {
-        fb.write_value(pixel_base, rgb);
-    }
-    unsafe fn write_pixel_bgr(fb: &mut FrameBuffer, pixel_base: usize, rgb: [u8; 3]) {
-        fb.write_value(pixel_base, [rgb[2], rgb[1], rgb[0]]);
-    }
-    let write_pixel: PixelWriter = match mi.pixel_format() {
-        PixelFormat::Rgb => write_pixel_rgb,
-        PixelFormat::Bgr => write_pixel_bgr,
-        _ => {
-            println!("This pixel format is not supported by the drawing demo");
-            return;
-        }
-    };
-
-    let mut fill_rectangle = |(x1, y1), (x2, y2), color| {
-        assert!((x1 < width) && (x2 < width), "Bad X coordinate");
-        assert!((y1 < height) && (y2 < height), "Bad Y coordinate");
-        for row in y1..y2 {
-            for column in x1..x2 {
-                unsafe {
-                    let pixel_index = (row * stride) + column;
-                    let pixel_base = 4 * pixel_index;
-                    write_pixel(&mut fb, pixel_base, color);
-                }
+            unsafe {
+                fb.write_value(pixel_base, [color[0] as u8, color[1] as u8, color[2] as u8]);
             }
         }
-    };
-
-    let mut x1: usize = 8;
-    let mut y1: usize = 8;
-
-    let mut r: u8 = 231;
-    let mut g: u8 = 242;
-    let mut b: u8 = 137;
-
-    while x1*2 < width && y1*2 < height {
-        x1 *= 2;
-        y1 *= 2;
-
-        r += 231;
-        g += 242;
-        b += 137;
-
-        fill_rectangle((x1, y1), (width - x1, height - y1), [r, g, b]);
     }
 }
 
-#[lang = "eh_personality"]
-extern "C" fn eh_personality() {}
