@@ -9,24 +9,25 @@ use uefi::table::{Boot, SystemTable};
 use uefi_services::println;
 
 
-
-pub struct FileLoader {
-    root_dir: Directory
+pub struct FileLoader<'a> {
+    image: &'a Handle,
+    system_table: &'a SystemTable<Boot>,
 }
 
-impl FileLoader {
-    pub fn new(image: &Handle, system_table: &SystemTable<Boot>) -> Self{
-        let dir = prepare_file_system(image, system_table);
+impl<'a> FileLoader<'a> {
+    pub fn new(image: &'a Handle, system_table: &'a SystemTable<Boot>) -> Self {
         FileLoader {
-            root_dir: dir
+            image,
+            system_table,
         }
     }
 
     pub fn read_file(&mut self, file_name: &str, directory: Option<&str>) -> Result<Vec<u8>, String> {
+        let mut dir = prepare_file_system(self.image, self.system_table);
         if let Some(sub_dir) = directory {
             let dir_name = CString16::try_from(sub_dir).unwrap();
-            match self.root_dir.open(&dir_name, FileMode::Read, FileAttribute::READ_ONLY) {
-                Ok(fh) => self.root_dir = fh.into_directory().unwrap(),
+            match dir.open(&dir_name, FileMode::Read, FileAttribute::READ_ONLY) {
+                Ok(fh) => dir = fh.into_directory().unwrap(),
                 Err(e) => {
                     println!("{:?}", e);
                     return Err("Could not open directory!".to_owned());
@@ -34,7 +35,7 @@ impl FileLoader {
             }
         }
         let file_name = CString16::try_from(file_name).unwrap();
-        if let Ok(mut handle) = self.root_dir.open(&file_name, FileMode::Read, FileAttribute::READ_ONLY) {
+        if let Ok(handle) = dir.open(&file_name, FileMode::Read, FileAttribute::READ_ONLY) {
             if let Some(mut regular) = handle.into_regular_file() {
                 let mut buf: [u8; 500_000] = [0; 500_000];
                 match regular.read(&mut buf) {
@@ -49,10 +50,6 @@ impl FileLoader {
         }
     }
 }
-
-
-
-
 
 
 fn prepare_file_system(image: &Handle, system_table: &SystemTable<Boot>) -> file::Directory {
