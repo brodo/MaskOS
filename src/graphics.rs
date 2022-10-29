@@ -10,6 +10,7 @@ use uefi::CStr16;
 use uefi_services::println;
 
 use crate::math::{Vec2, Color4};
+use crate::file_loader::{FileLoader};
 
 pub struct VirtualFrameBuffer {
     pub data: Vec<Vec<Color4>>,
@@ -129,6 +130,7 @@ impl Default for TileSet {
     }
 }
 
+#[derive(Clone)]
 pub struct Entity {
     pub tile_index: usize,
     pub wall: bool,
@@ -148,6 +150,23 @@ impl Default for Entity {
 pub struct Sprite {
     pub pos: Vec2,
     pub entities: Vec<Vec<Entity>>,
+}
+
+impl Sprite {
+    pub fn new(entities: Vec<Vec<Entity>>) -> Self {
+        Sprite {
+            pos: Vec2::new(0, 0),
+            entities: entities,
+        }
+    }
+
+    fn tiles_width(&self) -> usize {
+        self.entities.len()
+    }
+
+    fn tiles_height(&self) -> usize {
+        self.entities[0].len()
+    }
 }
 
 impl Default for Sprite {
@@ -177,5 +196,68 @@ impl DrawFramebuffer for Sprite {
         let (pixel_x, pixel_y) = (x % Tile::WIDTH, y % Tile::HEIGHT);
 
         tile_set.tiles[self.entities[tile_x][tile_y].tile_index].pixels[pixel_x][pixel_y]
+    }
+}
+
+pub struct Level {
+    pub sprite: Sprite,
+}
+
+impl Level {
+    pub const WIDTH: usize = 40;
+    pub const HEIGHT: usize = 30;
+
+    pub fn new_from_name(file_loader: &FileLoader, level_name: &str) -> Self {
+        let level_file_name = format!("{}.lvl", level_name);
+        let level_bytes = file_loader.read_file(&level_file_name, Some("levels")).unwrap();
+
+        let mut entities = vec![vec![]];
+
+        for x in 0..Self::WIDTH {
+            entities.push(vec![]);
+
+            for y in 0..Self::HEIGHT {
+                let entity_id_char: char = level_bytes[y * Self::WIDTH + x].into();
+                let entity_id = format!("{}", entity_id_char);
+
+                //let field_entity = Entity::new_from_id(&file_loader, entity_id);
+                let field_entity = Entity::default();
+                entities[x].push(field_entity);
+            }
+        }
+
+        Level {
+            sprite: Sprite::new(entities),
+        }
+    }
+
+    pub fn collides(&self, sprite: &Sprite, move_dir: Vec2) -> Option<Vec<Entity>> {
+        let moved_pos = sprite.pos + move_dir;
+        let index_pos = moved_pos - self.sprite.pos;
+
+        let (first_x, first_y) = (index_pos[0] / (Tile::WIDTH as i32), index_pos[1] / (Tile::HEIGHT as i32));
+        let (end_x, end_y) = (first_x + (sprite.tiles_width() as i32) + 1, first_y + (sprite.tiles_height() as i32) + 1);
+
+        let mut collision_entities = vec![];
+        for x in first_x..end_x {
+            for y in first_y..end_y {
+                let entity = self.sprite.entities[x as usize][y as usize].clone();
+                if entity.wall {
+                    let collides = sprite.pos[0] < self.sprite.pos[0] + (x + 1) * (Tile::WIDTH as i32) ||
+                        sprite.pos[0] + (sprite.width() as i32) > self.sprite.pos[0] + x * (Tile::WIDTH as i32) ||
+                        sprite.pos[1] < self.sprite.pos[1] + (y + 1) * (Tile::HEIGHT as i32) ||
+                        sprite.pos[1] + (sprite.height() as i32) > self.sprite.pos[1] + y * (Tile::HEIGHT as i32);
+                    if collides {
+                        collision_entities.push(entity);
+                    }
+                }
+            }
+        }
+
+        if collision_entities.len() == 0 {
+            None
+        } else {
+            Some(collision_entities)
+        }
     }
 }

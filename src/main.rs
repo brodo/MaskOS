@@ -18,7 +18,7 @@ use uefi::proto::console::gop::{BltOp, BltPixel, FrameBuffer, GraphicsOutput, Pi
 use uefi::proto::console::text::{Key, ScanCode};
 
 use math::{Vec2, Color4};
-use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite};
+use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite, Level};
 use crate::file_loader::{FileLoader};
 
 #[entry]
@@ -27,7 +27,6 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
     let st_clone = st.unsafe_clone();
     let bt = st_clone.boot_services();
-
 
     if let Ok(handle) = bt.get_handle_for_protocol::<GraphicsOutput>() {
         let gop = &mut bt
@@ -58,6 +57,8 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         let mut file_loader = FileLoader::new(&image, &st);
         let tile_set_bytes = file_loader.read_file( "TileSet.bmp", None).unwrap();
         let mut tile_set = TileSet::new_from_buffer(tile_set_bytes);
+
+        let level1 = Level::new_from_name(&file_loader, "1");
 
         println!("Beginning game loop");
 
@@ -107,6 +108,8 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
             character.pos += move_dir;
 
             vfb.clear(Color4::new(0, 0, 0, 255));
+
+            level1.sprite.draw(&tile_set, &mut vfb);
 
             character.draw(&tile_set, &mut vfb);
             test.draw(&tile_set, &mut vfb);
