@@ -94,8 +94,8 @@ impl TileSet {
         let mut tiles: Vec<Tile> = vec![];
         let width_in_tiles = bmp.size().width / 16;
         let height_in_tiles = bmp.size().height / 16;
-        for tile_x in 0..width_in_tiles {
-            for tile_y in 0..height_in_tiles {
+        for tile_y in 0..height_in_tiles {
+            for tile_x in 0..width_in_tiles {
                 let mut tile_bitmap = [[Color4::new(255, 255, 255, 255); 16]; 16];
                 for x in 0..16 {
                     for y in 0..16 {
@@ -155,7 +155,7 @@ impl Entity {
         let obj = json.as_object().unwrap();
         let mut tile_index = 0;
         let mut wall = false;
-        let mut door_colors:Vec<usize> = vec![];
+        let mut door_colors: Vec<usize> = vec![];
         for (key, value) in obj {
             let key_str = key.iter().map(|c| c.to_string()).collect::<Vec<String>>().join("");
             if key_str == "tile_index" {
@@ -166,7 +166,7 @@ impl Entity {
             }
 
             if key_str == "door_colors" {
-                door_colors = value.as_array().unwrap().iter().map(|item| { item.as_number().unwrap().integer as usize}).collect()
+                door_colors = value.as_array().unwrap().iter().map(|item| { item.as_number().unwrap().integer as usize }).collect()
             }
         }
 
@@ -174,7 +174,7 @@ impl Entity {
         Entity {
             wall,
             door_colors,
-            tile_index
+            tile_index,
         }
     }
 }
@@ -249,11 +249,10 @@ impl Level {
             entities.push(vec![]);
 
             for y in 0..Self::HEIGHT {
-                let entity_id_char: char = level_bytes[y * Self::WIDTH + x].into();
+                let entity_id_char: char = level_bytes[y * (Self::WIDTH + 1) + x].into();
                 let entity_id = format!("{}", entity_id_char);
 
-                //let field_entity = Entity::new_from_id(&file_loader, entity_id);
-                let field_entity = Entity::default();
+                let field_entity = Entity::new_from_id(&file_loader, &entity_id);
                 entities[x].push(field_entity);
             }
         }
