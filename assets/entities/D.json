@@ -1,0 +1,6 @@
+{
+	"name": "Left wall",
+	"tile_index": 152,
+	"wall": true,
+	"door_colors": []
+}

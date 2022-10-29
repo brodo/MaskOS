@@ -1,0 +1,6 @@
+{
+	"name": "Upper right wall",
+	"tile_index": 146,
+	"wall": true,
+	"door_colors": []
+}

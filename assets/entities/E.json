@@ -1,0 +1,6 @@
+{
+	"name": "Simple gray floor",
+	"tile_index": 153,
+	"wall": false,
+	"door_colors": []
+}
