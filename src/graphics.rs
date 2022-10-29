@@ -90,10 +90,6 @@ pub struct TileSet {
 impl TileSet {
     pub fn new_from_buffer(buffer: Vec<u8>) -> Self {
         let bmp = Bmp::<Rgb888>::from_slice(buffer.as_slice()).unwrap();
-
-        for Pixel(position, color) in bmp.pixels() {
-            println!("R: {}, G: {}, B: {}  @ ({})", color.r(), color.g(), color.b(), position);
-        }
         let mut tiles: Vec<Tile> = vec![];
         for tile_x in 0..(bmp.size().width / 16) {
             for tile_y in 0..(bmp.size().height / 16) {
