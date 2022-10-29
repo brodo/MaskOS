@@ -1,16 +1,15 @@
+use alloc::borrow::ToOwned;
+use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use embedded_graphics::geometry::OriginDimensions;
-use embedded_graphics::Pixel;
-use embedded_graphics::pixelcolor::{Rgb888, RgbColor};
+use embedded_graphics::pixelcolor::Rgb888;
 use embedded_graphics::pixelcolor::raw::ToBytes;
 use embedded_graphics::prelude::Point;
-use tinybmp::{Bmp, Pixels};
+use lite_json::parse_json;
+use tinybmp::{Bmp};
+use crate::FileLoader;
+use crate::math::{Color4, Vec2};
 
-use uefi::CStr16;
-use uefi_services::println;
-
-use crate::math::{Vec2, Color4};
-use crate::file_loader::{FileLoader};
 
 pub struct VirtualFrameBuffer {
     pub data: Vec<Vec<Color4>>,
