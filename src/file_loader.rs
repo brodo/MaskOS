@@ -22,7 +22,7 @@ impl<'a> FileLoader<'a> {
         }
     }
 
-    pub fn read_file(&mut self, file_name: &str, directory: Option<&str>) -> Result<Vec<u8>, String> {
+    pub fn read_file(&self, file_name: &str, directory: Option<&str>) -> Result<Vec<u8>, String> {
         let mut dir = prepare_file_system(self.image, self.system_table);
         if let Some(sub_dir) = directory {
             let dir_name = CString16::try_from(sub_dir).unwrap();
