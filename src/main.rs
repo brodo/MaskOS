@@ -14,7 +14,7 @@ pub mod file_loader;
 use uefi::prelude::*;
 use uefi_services::println;
 use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams};
-use uefi::proto::console::gop::{ FrameBuffer, GraphicsOutput};
+use uefi::proto::console::gop::{FrameBuffer, GraphicsOutput};
 use uefi::proto::console::text::{Key, ScanCode};
 
 use math::{Vec2, Color4};
@@ -30,18 +30,18 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
     if let Ok(handle) = bt.get_handle_for_protocol::<GraphicsOutput>() {
         let gop = &mut bt
-                .open_protocol::<GraphicsOutput>(
-                    OpenProtocolParams {
-                        handle,
-                        agent: image,
-                        controller: None,
-                    },
-                    // For this character, don't open in exclusive mode. That
-                    // would break the connection between stdout and the
-                    // video console.
-                    OpenProtocolAttributes::GetProtocol,
-                )
-                .expect("failed to open Graphics Output Protocol");
+            .open_protocol::<GraphicsOutput>(
+                OpenProtocolParams {
+                    handle,
+                    agent: image,
+                    controller: None,
+                },
+                // For this character, don't open in exclusive mode. That
+                // would break the connection between stdout and the
+                // video console.
+                OpenProtocolAttributes::GetProtocol,
+            )
+            .expect("failed to open Graphics Output Protocol");
 
         println!("GOP inited succesfully!");
 
@@ -51,11 +51,11 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         let stride = mi.stride();
 
         let mut fb = gop.frame_buffer();
-        
+
         /* game loop */
         let mut vfb = VirtualFrameBuffer::new();
         let file_loader = FileLoader::new(&image, &st);
-        let tile_set_bytes = file_loader.read_file( "TileSet.bmp", None).unwrap();
+        let tile_set_bytes = file_loader.read_file("TileSet.bmp", None).unwrap();
         let tile_set = TileSet::new_from_buffer(tile_set_bytes);
 
         let level1 = Level::new_from_name(&file_loader, "1");
@@ -64,6 +64,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
         let mut move_dir = Vec2::new(0, 0);
         let mut character = Sprite::default();
+        character.pos = Vec2::new(50, 50);
 
         let mut test = Sprite::default();
         test.pos = Vec2::new(100, 100);
@@ -78,28 +79,28 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
                     } else {
                         Vec2::new(-1, 0)
                     };
-                },
+                }
                 Some(Key::Special(ScanCode::RIGHT)) => {
                     move_dir = if move_dir[0] == -1 {
                         Vec2::new(0, 0)
                     } else {
                         Vec2::new(1, 0)
                     };
-                },
+                }
                 Some(Key::Special(ScanCode::UP)) => {
                     move_dir = if move_dir[1] == 1 {
                         Vec2::new(0, 0)
                     } else {
                         Vec2::new(0, -1)
                     };
-                },
+                }
                 Some(Key::Special(ScanCode::DOWN)) => {
                     move_dir = if move_dir[1] == -1 {
                         Vec2::new(0, 0)
                     } else {
                         Vec2::new(0, 1)
                     };
-                },
+                }
                 _ => ()
             }
 
@@ -131,7 +132,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
     //Status::SUCCESS
 }
 
-fn choose_graphics_mode(gop: &mut GraphicsOutput, mut st: SystemTable<Boot>, bt: &BootServices) -> (usize, usize){
+fn choose_graphics_mode(gop: &mut GraphicsOutput, mut st: SystemTable<Boot>, bt: &BootServices) -> (usize, usize) {
     let mut mode_index = usize::MAX;
     for i in 0..gop.modes().len() {
         let res = gop.modes().nth(i).unwrap().info().resolution();

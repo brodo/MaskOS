@@ -85,16 +85,17 @@ impl Default for Tile {
 }
 
 pub struct TileSet {
-    pub tiles: Vec<Tile>,
+    pub tiles: Vec<Vec<Tile>>,
 }
 
 impl TileSet {
     pub fn new_from_buffer(buffer: Vec<u8>) -> Self {
         let bmp = Bmp::<Rgb888>::from_slice(buffer.as_slice()).unwrap();
-        let mut tiles: Vec<Tile> = vec![];
+        let mut tiles: Vec<Vec<Tile>> = vec![];
         let width_in_tiles = bmp.size().width / 16;
         let height_in_tiles = bmp.size().height / 16;
         for tile_y in 0..height_in_tiles {
+            let mut row = vec![];
             for tile_x in 0..width_in_tiles {
                 let mut tile_bitmap = [[Color4::new(255, 255, 255, 255); 16]; 16];
                 for x in 0..16 {
@@ -111,8 +112,9 @@ impl TileSet {
                         tile_bitmap[x as usize][y as usize] = color;
                     }
                 }
-                tiles.push(Tile::new_from_pixels(tile_bitmap));
+                row.push(Tile::new_from_pixels(tile_bitmap));
             }
+            tiles.push(row);
         }
 
         TileSet {
@@ -124,14 +126,15 @@ impl TileSet {
 impl Default for TileSet {
     fn default() -> Self {
         TileSet {
-            tiles: vec![Tile::default()],
+            tiles: vec![vec![Tile::default()]],
         }
     }
 }
 
 #[derive(Clone)]
 pub struct Entity {
-    pub tile_index: usize,
+    pub tile_x: u8,
+    pub tile_y: u8,
     pub wall: bool,
     pub door_colors: Vec<usize>,
 }
@@ -139,7 +142,8 @@ pub struct Entity {
 impl Default for Entity {
     fn default() -> Self {
         Entity {
-            tile_index: 0,
+            tile_x: 0,
+            tile_y: 0,
             wall: false,
             door_colors: vec![],
         }
@@ -153,13 +157,17 @@ impl Entity {
         let file_content_str = core::str::from_utf8(&file_byes).unwrap();
         let json = parse_json(file_content_str).unwrap();
         let obj = json.as_object().unwrap();
-        let mut tile_index = 0;
+        let mut tile_x: u8 = 0;
+        let mut tile_y: u8 = 0;
         let mut wall = false;
         let mut door_colors: Vec<usize> = vec![];
         for (key, value) in obj {
             let key_str = key.iter().map(|c| c.to_string()).collect::<Vec<String>>().join("");
-            if key_str == "tile_index" {
-                tile_index = value.as_number().unwrap().integer as usize;
+            if key_str == "tile_x" {
+                tile_x = value.as_number().unwrap().integer as u8;
+            }
+            if key_str == "tile_y" {
+                tile_y = value.as_number().unwrap().integer as u8;
             }
             if key_str == "wall" {
                 wall = value.as_bool().unwrap().to_owned();
@@ -174,7 +182,8 @@ impl Entity {
         Entity {
             wall,
             door_colors,
-            tile_index,
+            tile_x,
+            tile_y
         }
     }
 }
@@ -226,8 +235,9 @@ impl DrawFramebuffer for Sprite {
     fn pixel(&self, tile_set: &TileSet, x: usize, y: usize) -> Color4 {
         let (tile_x, tile_y) = (x / Tile::WIDTH, y / Tile::HEIGHT);
         let (pixel_x, pixel_y) = (x % Tile::WIDTH, y % Tile::HEIGHT);
+        let entity = &self.entities[tile_x][tile_y];
 
-        tile_set.tiles[self.entities[tile_x][tile_y].tile_index].pixels[pixel_x][pixel_y]
+        tile_set.tiles[entity.tile_x as usize][entity.tile_y as usize].pixels[pixel_x][pixel_y]
     }
 }
 
