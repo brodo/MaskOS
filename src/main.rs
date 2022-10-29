@@ -105,7 +105,12 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
             bt.stall(1000);
 
-            character.pos += move_dir;
+            if let Some(entities) = level1.collides(&character, move_dir) {
+                // Handle collision: check if all walls have the correct color(s) and if so,
+                // move the character here, too.
+            } else {
+                character.pos += move_dir;
+            }
 
             vfb.clear(Color4::new(0, 0, 0, 255));
 
