@@ -2,6 +2,7 @@ use alloc::vec::Vec;
 use embedded_graphics::geometry::OriginDimensions;
 use embedded_graphics::Pixel;
 use embedded_graphics::pixelcolor::{Rgb888, RgbColor};
+use embedded_graphics::pixelcolor::raw::ToBytes;
 use embedded_graphics::prelude::Point;
 use tinybmp::{Bmp, Pixels};
 
@@ -62,13 +63,13 @@ pub trait DrawFramebuffer {
  * fully opaque.
  */
 pub struct Tile {
-    pixels: [[Color4; 16]; 16],
+    pub pixels: [[Color4; 16]; 16],
 }
 
 impl Tile {
     pub const WIDTH: usize = 16;
     pub const HEIGHT: usize = 16;
-    fn new_from_pixels(pixels: [[Color4; 16]; 16]) -> Self{
+    fn new_from_pixels(pixels: [[Color4; 16]; 16]) -> Self {
         Tile {
             pixels
         }
@@ -91,15 +92,23 @@ impl TileSet {
     pub fn new_from_buffer(buffer: Vec<u8>) -> Self {
         let bmp = Bmp::<Rgb888>::from_slice(buffer.as_slice()).unwrap();
         let mut tiles: Vec<Tile> = vec![];
-        for tile_x in 0..(bmp.size().width / 16) {
-            for tile_y in 0..(bmp.size().height / 16) {
+        let width_in_tiles = bmp.size().width / 16;
+        let height_in_tiles = bmp.size().height / 16;
+        for tile_x in 0..width_in_tiles {
+            for tile_y in 0..height_in_tiles {
                 let mut tile_bitmap = [[Color4::new(255, 255, 255, 255); 16]; 16];
                 for x in 0..16 {
-                    let mut row = tile_bitmap[x as usize];
                     for y in 0..16 {
-                        let point = Point::new((tile_x + x) as i32, (tile_y + y) as i32);
+                        let point = Point::new((tile_x * 16 + x) as i32, (tile_y * 16 + y) as i32);
                         let pixel = bmp.pixel(point).unwrap();
-                        row[y as usize] = Color4::new(pixel.r().into(), pixel.g().into(), pixel.b().into(), 255);
+                        let bytes = pixel.to_le_bytes();
+                        let alpha = if bytes[0] == 255 && bytes[1] == 255 && bytes[2] == 255 {
+                            0
+                        } else {
+                            1
+                        };
+                        let color = Color4::new(bytes[0] as i32, bytes[1] as i32, bytes[2] as i32, alpha);
+                        tile_bitmap[x as usize][y as usize] = color;
                     }
                 }
                 tiles.push(Tile::new_from_pixels(tile_bitmap));
