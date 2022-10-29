@@ -8,6 +8,8 @@ extern crate alloc;
 
 pub mod math;
 pub mod graphics;
+pub mod file_loader;
+
 
 use uefi::prelude::*;
 use uefi_services::println;
@@ -17,6 +19,7 @@ use uefi::proto::console::text::{Key, ScanCode};
 
 use math::{Vec2, Color4};
 use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite};
+use crate::file_loader::read_file;
 
 #[entry]
 unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
@@ -24,6 +27,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
     let st_clone = st.unsafe_clone();
     let bt = st_clone.boot_services();
+
 
     if let Ok(handle) = bt.get_handle_for_protocol::<GraphicsOutput>() {
         let gop = &mut bt
@@ -51,7 +55,8 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         
         /* game loop */
         let mut vfb = VirtualFrameBuffer::new();
-        let mut tile_set = TileSet::default();
+        let tile_set_bytes = read_file(&image, &st, "TileSet.bmp").unwrap();
+        let mut tile_set = TileSet::new_from_buffer(tile_set_bytes);
 
         println!("Beginning game loop");
 
