@@ -1,7 +1,4 @@
 use core::ops::{Index, IndexMut, Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
-use embedded_graphics::Pixel;
-use embedded_graphics::pixelcolor::Rgb888;
-use embedded_graphics::prelude::RgbColor;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vec4 {
@@ -46,13 +43,6 @@ impl Index<usize> for Vec4 {
 impl IndexMut<usize> for Vec4 {
     fn index_mut(&mut self, index: usize) -> &mut i32 {
         &mut self.e[index]
-    }
-}
-
-impl From<Rgb888> for Color4 {
-    fn from(pixel: Rgb888) -> Self {
-
-        Color4::new(pixel.r() as i32, pixel.g() as i32, pixel.b() as i32, 255)
     }
 }
 
