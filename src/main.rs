@@ -55,7 +55,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         
         /* game loop */
         let mut vfb = VirtualFrameBuffer::new();
-        let tile_set_bytes = read_file(&image, &st, "TileSet.bmp").unwrap();
+        let tile_set_bytes = read_file(&image, &st, "TileSet.bmp", None).unwrap();
         let mut tile_set = TileSet::new_from_buffer(tile_set_bytes);
 
         println!("Beginning game loop");
