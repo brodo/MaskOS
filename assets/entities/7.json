@@ -1,6 +1,7 @@
 {
 	"name": "Lower carpet",
-	"tile_index": 121,
+	"tile_x": 14,
+	"tile_y": 1,
 	"wall": false,
 	"door_colors": []
 }

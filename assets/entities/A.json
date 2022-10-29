@@ -1,6 +1,7 @@
 {
 	"name": "Upper left wall",
-	"tile_index": 144,
+	"tile_x": 18,
+	"tile_y": 0,
 	"wall": true,
 	"door_colors": []
 }

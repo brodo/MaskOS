@@ -1,6 +1,7 @@
 {
 	"name": "Upper left carpet",
-	"tile_index": 104,
+	"tile_x": 12,
+	"tile_y": 0,
 	"wall": false,
 	"door_colors": []
 }

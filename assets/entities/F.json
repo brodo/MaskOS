@@ -1,6 +1,7 @@
 {
 	"name": "Right wall",
-	"tile_index": 154,
-	"wall": false,
+	"tile_x": 19,
+	"tile_y": 2,
+	"wall": true,
 	"door_colors": []
 }
