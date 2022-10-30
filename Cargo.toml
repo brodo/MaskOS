@@ -10,3 +10,4 @@ uefi-services = "0.14.0"
 tinybmp = "0.4.0"
 embedded-graphics = "0.7.1"
 lite-json = { version = "0.2.0", default-features = false, defaults = ["no_std"] }
+hashbrown = "0.12.3"

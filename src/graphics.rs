@@ -9,6 +9,8 @@ use lite_json::parse_json;
 use tinybmp::{Bmp};
 use crate::FileLoader;
 use crate::math::{Color4, Vec2};
+use hashbrown::HashMap;
+use uefi::proto::media::file::File;
 
 
 pub struct VirtualFrameBuffer {
@@ -150,43 +152,6 @@ impl Default for Entity {
     }
 }
 
-impl Entity {
-    pub fn new_from_id(file_loader: &FileLoader, id: &str) -> Self {
-        let file_name = format!("{}.json", id);
-        let file_byes = file_loader.read_file(&file_name, Some("entities")).unwrap();
-        let file_content_str = core::str::from_utf8(&file_byes).unwrap();
-        let json = parse_json(file_content_str).unwrap();
-        let obj = json.as_object().unwrap();
-        let mut tile_x: u8 = 0;
-        let mut tile_y: u8 = 0;
-        let mut wall = false;
-        let mut door_colors: Vec<usize> = vec![];
-        for (key, value) in obj {
-            let key_str = key.iter().map(|c| c.to_string()).collect::<Vec<String>>().join("");
-            if key_str == "tile_x" {
-                tile_x = value.as_number().unwrap().integer as u8;
-            }
-            if key_str == "tile_y" {
-                tile_y = value.as_number().unwrap().integer as u8;
-            }
-            if key_str == "wall" {
-                wall = value.as_bool().unwrap().to_owned();
-            }
-
-            if key_str == "door_colors" {
-                door_colors = value.as_array().unwrap().iter().map(|item| { item.as_number().unwrap().integer as usize }).collect()
-            }
-        }
-
-
-        Entity {
-            wall,
-            door_colors,
-            tile_x,
-            tile_y
-        }
-    }
-}
 
 pub struct Sprite {
     pub pos: Vec2,
@@ -306,11 +271,58 @@ pub struct Level {
     pub masks: Vec<Mask>,
 }
 
+pub struct EntityLoader {
+    pub entities: HashMap<String, Entity>,
+}
+
+impl EntityLoader {
+    pub fn new(file_loader: &FileLoader) -> Self {
+        let file_byes = file_loader.read_file("entities.json", None).unwrap();
+        let file_content_str = core::str::from_utf8(&file_byes[..]).unwrap();
+        let json = parse_json(file_content_str).unwrap();
+        let obj = json.as_object().unwrap();
+        let mut entity_map = HashMap::new();
+        for (entity_key, entity_value) in obj {
+            let entity_str = entity_key.iter().map(|c| c.to_string()).collect::<Vec<String>>().join("");
+            let inner_obj = entity_value.as_object().unwrap();
+            let mut tile_x: u8 = 0;
+            let mut tile_y: u8 = 0;
+            let mut wall = false;
+            let mut door_colors: Vec<usize> = vec![];
+            for (key, value) in inner_obj {
+                let key_str = key.iter().map(|c| c.to_string()).collect::<Vec<String>>().join("");
+                if key_str == "tile_x" {
+                    tile_x = value.as_number().unwrap().integer as u8;
+                }
+                if key_str == "tile_y" {
+                    tile_y = value.as_number().unwrap().integer as u8;
+                }
+                if key_str == "wall" {
+                    wall = value.as_bool().unwrap().to_owned();
+                }
+
+                if key_str == "door_colors" {
+                    door_colors = value.as_array().unwrap().iter().map(|item| { item.as_number().unwrap().integer as usize }).collect()
+                }
+            }
+            let entity = Entity {tile_x, tile_y, door_colors, wall};
+            entity_map.insert(entity_str, entity);
+        }
+        EntityLoader {
+            entities: entity_map
+        }
+    }
+
+    pub fn get(&self, id: &str) -> Entity {
+        self.entities.get(id).unwrap().clone()
+    }
+}
+
 impl Level {
     pub const WIDTH: usize = 40;
     pub const HEIGHT: usize = 30;
 
-    pub fn new_from_name(file_loader: &FileLoader, level_name: &str) -> Self {
+    pub fn new_from_name(file_loader: &FileLoader, entity_loader: &EntityLoader, level_name: &str) -> Self {
         let level_file_name = format!("{}.lvl", level_name);
         let level_bytes = file_loader.read_file(&level_file_name, Some("levels")).unwrap();
 
@@ -324,8 +336,7 @@ impl Level {
             for y in 0..Self::HEIGHT {
                 let entity_id_char: char = level_bytes[y * (Self::WIDTH + 1) + x].into();
                 let entity_id = format!("{}", entity_id_char);
-
-                let field_entity = Entity::new_from_id(&file_loader, &entity_id);
+                let field_entity = entity_loader.get(&entity_id);
                 entities[x].push(field_entity);
             }
         }
