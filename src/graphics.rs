@@ -330,7 +330,11 @@ impl EntityLoader {
     }
 
     pub fn get(&self, id: &str) -> Entity {
-        self.entities.get(id).unwrap().clone()
+        match self.entities.get(id) {
+            None => panic!("Entity does not exist: {}", id),
+            Some(e) => e.clone()
+        }
+
     }
 }
 
