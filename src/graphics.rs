@@ -181,8 +181,8 @@ impl Sprite {
         let (s2_start_x, s2_start_y) = (sprite.pos[0], sprite.pos[1]);
         let (s2_end_x, s2_end_y) = (sprite.pos[0] + sprite.width() as i32, sprite.pos[1] + sprite.height() as i32);
 
-        ((s1_start_x > s2_start_x && s1_start_x < s2_end_x) || (s1_end_x > s2_start_x && s1_end_x < s2_end_x))
-            && ((s1_start_y > s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y < s2_end_y))
+        ((s1_start_x >= s2_start_x && s1_start_x < s2_end_x) || (s1_end_x > s2_start_x && s1_end_x <= s2_end_x))
+            && ((s1_start_y >= s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y <= s2_end_y))
     }
 }
 
@@ -417,8 +417,8 @@ impl Level {
                     let (s2_start_x, s2_start_y) = (moved_pos[0], moved_pos[1]);
                     let (s2_end_x, s2_end_y) = (moved_pos[0] + sprite.width() as i32, moved_pos[1] + sprite.height() as i32);
 
-                    let collides = ((s1_start_x > s2_start_x && s1_start_x < s2_end_x) || (s1_end_x > s2_start_x && s1_end_x < s2_end_x))
-                        && ((s1_start_y > s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y < s2_end_y));
+                    let collides = ((s1_start_x >= s2_start_x && s1_start_x < s2_end_x) || (s1_end_x > s2_start_x && s1_end_x <= s2_end_x))
+                        && ((s1_start_y >= s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y <= s2_end_y));
 
                     if collides {
                         collision_entities.push(entity);
