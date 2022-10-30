@@ -195,7 +195,7 @@
     "wall": true,
     "door_colors": []
   },
-  "R": {
+  "n": {
     "name": "Radio",
     "tile_x": 24,
     "tile_y": 0,
