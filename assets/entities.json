@@ -254,5 +254,26 @@
       1,
       2
     ]
+  },
+  "r": {
+    "name": "Red mask",
+    "tile_x": 26,
+    "tile_y": 7,
+    "wall": false,
+    "door_colors": []
+  },
+  "g": {
+    "name": "Green mask",
+    "tile_x": 26,
+    "tile_y": 5,
+    "wall": false,
+    "door_colors": []
+  },
+  "b": {
+    "name": "Blue mask",
+    "tile_x": 26,
+    "tile_y": 6,
+    "wall": false,
+    "door_colors": []
   }
 }
