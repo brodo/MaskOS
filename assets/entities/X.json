@@ -1,7 +1,0 @@
-{
-	"name": "Vertical door Red/Green",
-	"tile_x": 21,
-	"tile_y": 4,
-	"wall": true,
-	"door_colors": [0, 1]
-}

@@ -1,7 +1,0 @@
-{
-	"name": "Lower right wall",
-	"tile_x": 20,
-	"tile_y": 2,
-	"wall": true,
-	"door_colors": []
-}

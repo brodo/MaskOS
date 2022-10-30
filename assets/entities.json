@@ -1,0 +1,258 @@
+{
+  "0": {
+    "name": "Upper left carpet",
+    "tile_x": 12,
+    "tile_y": 0,
+    "wall": false,
+    "door_colors": []
+  },
+  "1": {
+    "name": "Upper carpet",
+    "tile_x": 12,
+    "tile_y": 1,
+    "wall": false,
+    "door_colors": []
+  },
+  "2": {
+    "name": "Upper right carpet",
+    "tile_x": 12,
+    "tile_y": 2,
+    "wall": false,
+    "door_colors": []
+  },
+  "3": {
+    "name": "Left carpet",
+    "tile_x": 13,
+    "tile_y": 0,
+    "wall": false,
+    "door_colors": []
+  },
+  "4": {
+    "name": "Center carpet",
+    "tile_x": 13,
+    "tile_y": 1,
+    "wall": false,
+    "door_colors": []
+  },
+  "5": {
+    "name": "Right carpet",
+    "tile_x": 13,
+    "tile_y": 2,
+    "wall": false,
+    "door_colors": []
+  },
+  "6": {
+    "name": "Lower left carpet",
+    "tile_x": 14,
+    "tile_y": 0,
+    "wall": false,
+    "door_colors": []
+  },
+  "7": {
+    "name": "Lower carpet",
+    "tile_x": 14,
+    "tile_y": 1,
+    "wall": false,
+    "door_colors": []
+  },
+  "8": {
+    "name": "Lower right carpet",
+    "tile_x": 14,
+    "tile_y": 2,
+    "wall": false,
+    "door_colors": []
+  },
+  "A": {
+    "name": "Upper left wall",
+    "tile_x": 18,
+    "tile_y": 0,
+    "wall": true,
+    "door_colors": []
+  },
+  "B": {
+    "name": "Upper wall",
+    "tile_x": 18,
+    "tile_y": 1,
+    "wall": true,
+    "door_colors": []
+  },
+  "C": {
+    "name": "Upper right wall",
+    "tile_x": 18,
+    "tile_y": 2,
+    "wall": true,
+    "door_colors": []
+  },
+  "D": {
+    "name": "Left wall",
+    "tile_x": 19,
+    "tile_y": 0,
+    "wall": true,
+    "door_colors": []
+  },
+  "E": {
+    "name": "Simple gray floor",
+    "tile_x": 19,
+    "tile_y": 1,
+    "wall": false,
+    "door_colors": []
+  },
+  "F": {
+    "name": "Right wall",
+    "tile_x": 19,
+    "tile_y": 2,
+    "wall": true,
+    "door_colors": []
+  },
+  "G": {
+    "name": "Lower left wall",
+    "tile_x": 20,
+    "tile_y": 0,
+    "wall": true,
+    "door_colors": []
+  },
+  "H": {
+    "name": "Lower wall",
+    "tile_x": 20,
+    "tile_y": 1,
+    "wall": true,
+    "door_colors": []
+  },
+  "I": {
+    "name": "Lower right wall",
+    "tile_x": 20,
+    "tile_y": 2,
+    "wall": true,
+    "door_colors": []
+  },
+  "J": {
+    "name": "Red single field carpet",
+    "tile_x": 5,
+    "tile_y": 7,
+    "wall": false,
+    "door_colors": []
+  },
+  "K": {
+    "name": "Blue single field carpet",
+    "tile_x": 11,
+    "tile_y": 7,
+    "wall": false,
+    "door_colors": []
+  },
+  "L": {
+    "name": "Blue seat",
+    "tile_x": 25,
+    "tile_y": 1,
+    "wall": false,
+    "door_colors": []
+  },
+  "M": {
+    "name": "Red seat",
+    "tile_x": 25,
+    "tile_y": 2,
+    "wall": false,
+    "door_colors": []
+  },
+  "N": {
+    "name": "Violet seat",
+    "tile_x": 25,
+    "tile_y": 3,
+    "wall": false,
+    "door_colors": []
+  },
+  "O": {
+    "name": "Cupboard",
+    "tile_x": 24,
+    "tile_y": 1,
+    "wall": true,
+    "door_colors": []
+  },
+  "P": {
+    "name": "Table",
+    "tile_x": 23,
+    "tile_y": 7,
+    "wall": true,
+    "door_colors": []
+  },
+  "R": {
+    "name": "Radio",
+    "tile_x": 24,
+    "tile_y": 0,
+    "wall": true,
+    "door_colors": []
+  },
+  "S": {
+    "name": "Book shelf",
+    "tile_x": 23,
+    "tile_y": 3,
+    "wall": true,
+    "door_colors": []
+  },
+  "T": {
+    "name": "Treasure",
+    "tile_x": 24,
+    "tile_y": 7,
+    "wall": true,
+    "door_colors": []
+  },
+  "U": {
+    "name": "Horizontal door Red/Green",
+    "tile_x": 20,
+    "tile_y": 4,
+    "wall": true,
+    "door_colors": [
+      0,
+      1
+    ]
+  },
+  "V": {
+    "name": "Vertical door Red/Blue",
+    "tile_x": 21,
+    "tile_y": 5,
+    "wall": true,
+    "door_colors": [
+      0,
+      2
+    ]
+  },
+  "W": {
+    "name": "Horizontal door Green/Blue",
+    "tile_x": 20,
+    "tile_y": 6,
+    "wall": true,
+    "door_colors": [
+      1,
+      2
+    ]
+  },
+  "X": {
+    "name": "Vertical door Red/Green",
+    "tile_x": 21,
+    "tile_y": 4,
+    "wall": true,
+    "door_colors": [
+      0,
+      1
+    ]
+  },
+  "Y": {
+    "name": "Horizontal door Red/Blue",
+    "tile_x": 20,
+    "tile_y": 5,
+    "wall": true,
+    "door_colors": [
+      0,
+      2
+    ]
+  },
+  "Z": {
+    "name": "Vertical door Green/Blue",
+    "tile_x": 21,
+    "tile_y": 6,
+    "wall": true,
+    "door_colors": [
+      1,
+      2
+    ]
+  }
+}

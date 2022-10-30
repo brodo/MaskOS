@@ -1,7 +1,0 @@
-{
-	"name": "Radio",
-	"tile_x": 24,
-	"tile_y": 0,
-	"wall": true,
-	"door_colors": []
-}

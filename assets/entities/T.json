@@ -1,7 +1,0 @@
-{
-	"name": "Treasure",
-	"tile_x": 24,
-	"tile_y": 7,
-	"wall": true,
-	"door_colors": []
-}
