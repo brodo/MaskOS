@@ -275,7 +275,7 @@
   "Y": {
     "name": "Horizontal door Red/Blue",
     "tile_x": 29,
-    "tile_y": 5,
+    "tile_y": 4,
     "wall": true,
     "door_colors": [
       0,
