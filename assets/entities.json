@@ -139,6 +139,13 @@
     "wall": true,
     "door_colors": []
   },
+  "+": {
+    "name": "Wall Cross-Section up",
+    "tile_x": 20,
+    "tile_y": 5,
+    "wall": true,
+    "door_colors": []
+  },
   "I": {
     "name": "Lower right wall",
     "tile_x": 20,
