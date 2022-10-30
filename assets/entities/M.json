@@ -1,0 +1,7 @@
+{
+	"name": "Red seat",
+	"tile_x": 25,
+	"tile_y": 2,
+	"wall": false,
+	"door_colors": []
+}

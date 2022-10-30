@@ -1,0 +1,7 @@
+{
+	"name": "Table",
+	"tile_x": 23,
+	"tile_y": 7,
+	"wall": true,
+	"door_colors": []
+}

@@ -1,0 +1,7 @@
+{
+	"name": "Book shelf",
+	"tile_x": 23,
+	"tile_y": 3,
+	"wall": true,
+	"door_colors": []
+}

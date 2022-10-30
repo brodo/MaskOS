@@ -1,0 +1,7 @@
+{
+	"name": "Cupboard",
+	"tile_x": 24,
+	"tile_y": 1,
+	"wall": true,
+	"door_colors": []
+}
