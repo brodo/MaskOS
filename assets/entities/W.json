@@ -1,0 +1,7 @@
+{
+	"name": "Horizontal door Green/Blue",
+	"tile_x": 20,
+	"tile_y": 6,
+	"wall": true,
+	"door_colors": [1, 2]
+}
