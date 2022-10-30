@@ -148,7 +148,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
             if level.player.sprite.collides(&level.treasure.sprite) {
                 level_num += 1;
                 let level_name = format!("{}", level_num);
-                level = Level::new_from_name(&file_loader, &level_name);
+                level = Level::new_from_name(&file_loader, &entity_loader, &level_name);
                 move_dir = Vec2::new(0, 0);
             }
 
