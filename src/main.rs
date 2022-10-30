@@ -136,7 +136,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
                 }
                 Some(Key::Printable(character)) => {
                     if character == ' '.try_into().unwrap() {
-                        let mut dropped_mask = level.player.drop_mask();
+                        let mut dropped_mask = level.player.drop_mask(&entity_loader);
                         let mut mask_to_take = None;
 
                         for mask in level.masks.iter() {

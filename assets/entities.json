@@ -90,6 +90,20 @@
     "wall": true,
     "door_colors": []
   },
+  "d": {
+    "name": "Down wall",
+    "tile_x": 19,
+    "tile_y": 3,
+    "wall": true,
+    "door_colors": []
+  },
+  "t": {
+    "name": "T Wall section",
+    "tile_x": 19,
+    "tile_y": 5,
+    "wall": true,
+    "door_colors": []
+  },
   "E": {
     "name": "Simple gray floor",
     "tile_x": 19,
@@ -115,6 +129,13 @@
     "name": "Lower wall",
     "tile_x": 20,
     "tile_y": 1,
+    "wall": true,
+    "door_colors": []
+  },
+  "l": {
+    "name": "Wall T-Section up",
+    "tile_x": 21,
+    "tile_y": 5,
     "wall": true,
     "door_colors": []
   },
@@ -168,9 +189,9 @@
     "door_colors": []
   },
   "P": {
-    "name": "Table",
-    "tile_x": 23,
-    "tile_y": 7,
+    "name": "Player",
+    "tile_x": 30,
+    "tile_y": 4,
     "wall": true,
     "door_colors": []
   },
@@ -215,6 +236,15 @@
       2
     ]
   },
+  "v": {
+    "name": "Vertical door Red",
+    "tile_x": 28,
+    "tile_y": 5,
+    "wall": true,
+    "door_colors": [
+      0
+    ]
+  },
   "W": {
     "name": "Horizontal door Green/Blue",
     "tile_x": 29,
@@ -254,6 +284,14 @@
       1,
       2
     ]
+  },
+  "o": {
+    "name": "Horizontal door Green",
+    "tile_x": 27,
+    "tile_y": 4,
+    "wall": true,
+    "door_colors": [
+      1]
   },
   "r": {
     "name": "Red mask",

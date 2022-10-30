@@ -105,7 +105,7 @@ impl TileSet {
                         let point = Point::new((tile_x * 16 + x) as i32, (tile_y * 16 + y) as i32);
                         let pixel = bmp.pixel(point).unwrap();
                         let bytes = pixel.to_le_bytes();
-                        let alpha = if bytes[0] == 255 && bytes[1] == 255 && bytes[2] == 255 {
+                        let alpha = if bytes[0] == 255 && bytes[1] == 0 && bytes[2] == 255 {
                             0
                         } else {
                             1
@@ -224,11 +224,12 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new() -> Self {
-        let sprite = Sprite::default();
+    pub fn new(entity_loader: &EntityLoader) -> Self {
+        let entity = entity_loader.get("P");
+        let sprite = Sprite::new(vec![vec![entity]]);
 
         Player {
-            sprite: sprite,
+            sprite,
             has_mask: false,
             mask_color: 0,
         }
@@ -239,10 +240,10 @@ impl Player {
         self.mask_color = mask.mask_color;
     }
 
-    pub fn drop_mask(&mut self) -> Option<Mask> {
+    pub fn drop_mask(&mut self, entiy_loader: &EntityLoader) -> Option<Mask> {
         if self.has_mask {
             self.has_mask = false;
-            Some(Mask::new_from_color_id(self.mask_color))
+            Some(Mask::new_from_color_id(self.mask_color, entiy_loader))
         } else {
             None
         }
@@ -255,11 +256,18 @@ pub struct Mask {
 }
 
 impl Mask {
-    pub fn new_from_color_id(color: usize) -> Self {
-        let sprite = Sprite::default();
+    pub fn new_from_color_id(color: usize, entity_loader: &EntityLoader) -> Self {
+        let col_name = match color {
+            0 => "r",
+            1 => "g",
+            2 => "b",
+            _ => "b",
+        };
+        let entity = entity_loader.get(col_name);
+        let sprite = Sprite::new(vec![vec![entity]]);
 
         Mask {
-            sprite: sprite,
+            sprite,
             mask_color: color,
         }
     }
@@ -270,8 +278,8 @@ pub struct Treasure {
 }
 
 impl Treasure {
-    pub fn new() -> Self {
-        let sprite = Sprite::default();
+    pub fn new(entity_loader: &EntityLoader) -> Self {
+        let sprite = Sprite::new(vec![vec![entity_loader.get("T")]]);
 
         Treasure {
             sprite: sprite,
@@ -321,7 +329,7 @@ impl EntityLoader {
                     door_colors = value.as_array().unwrap().iter().map(|item| { item.as_number().unwrap().integer as usize }).collect()
                 }
             }
-            let entity = Entity {tile_x, tile_y, door_colors, wall};
+            let entity = Entity { tile_x, tile_y, door_colors, wall };
             entity_map.insert(entity_str, entity);
         }
         EntityLoader {
@@ -334,7 +342,6 @@ impl EntityLoader {
             None => panic!("Entity does not exist: {}", id),
             Some(e) => e.clone()
         }
-
     }
 }
 
@@ -361,35 +368,35 @@ impl Level {
             }
         }
 
-        let mut player = Player::new();
+        let mut player = Player::new(&entity_loader);
         let mut masks = vec![];
-        let mut treasure = Treasure::new();
+        let mut treasure = Treasure::new(&entity_loader);
         for x in 0..Self::WIDTH {
             for y in 0..Self::HEIGHT {
                 let item_id_char: char = level_items_bytes[y * (Self::WIDTH + 1) + x].into();
                 let pos = Vec2::new((x * Tile::WIDTH) as i32, (y * Tile::HEIGHT) as i32);
                 match item_id_char {
                     'R' => {
-                        let mut mask = Mask::new_from_color_id(0);
+                        let mut mask = Mask::new_from_color_id(0, entity_loader);
                         mask.sprite.pos = pos;
                         masks.push(mask);
-                    },
+                    }
                     'G' => {
-                        let mut mask = Mask::new_from_color_id(1);
+                        let mut mask = Mask::new_from_color_id(1, entity_loader);
                         mask.sprite.pos = pos;
                         masks.push(mask);
-                    },
+                    }
                     'B' => {
-                        let mut mask = Mask::new_from_color_id(2);
+                        let mut mask = Mask::new_from_color_id(2, entity_loader);
                         mask.sprite.pos = pos;
                         masks.push(mask);
-                    },
+                    }
                     'T' => {
                         treasure.sprite.pos = pos;
-                    },
+                    }
                     'P' => {
                         player.sprite.pos = pos;
-                    },
+                    }
                     _ => (),
                 }
             }
