@@ -241,6 +241,22 @@ impl DrawFramebuffer for Sprite {
     }
 }
 
+pub struct Player {
+    pub sprite: Sprite,
+    pub mask_color: usize,
+}
+
+impl Player {
+    pub fn new() -> Self {
+        let sprite = Sprite::default();
+
+        Player {
+            sprite: sprite,
+            mask_color: 0,
+        }
+    }
+}
+
 pub struct Level {
     pub sprite: Sprite,
 }

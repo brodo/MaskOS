@@ -18,7 +18,7 @@ use uefi::proto::console::gop::{FrameBuffer, GraphicsOutput};
 use uefi::proto::console::text::{Key, ScanCode};
 
 use math::{Vec2, Color4};
-use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite, Level};
+use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite, Player, Level};
 use crate::file_loader::{FileLoader};
 
 #[entry]
@@ -63,8 +63,8 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         println!("Beginning game loop");
 
         let mut move_dir = Vec2::new(0, 0);
-        let mut character = Sprite::default();
-        character.pos = Vec2::new(50, 50);
+        let mut player = Player::new();
+        player.sprite.pos = Vec2::new(50, 50);
 
         let mut test = Sprite::default();
         test.pos = Vec2::new(100, 100);
@@ -106,18 +106,28 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
             bt.stall(1000);
 
-            if let Some(entities) = level1.collides(&character, move_dir) {
+            if let Some(entities) = level1.collides(&player.sprite, move_dir) {
                 // Handle collision: check if all walls have the correct color(s) and if so,
-                // move the character here, too.
+                // move the player here, too.
+                let mut can_walk_through = true;
+                for entity in entities.iter() {
+                    if !entity.door_colors.contains(&player.mask_color) {
+                        can_walk_through = false;
+                    }
+                }
+
+                if can_walk_through {
+                    player.sprite.pos += move_dir;
+                }
             } else {
-                character.pos += move_dir;
+                player.sprite.pos += move_dir;
             }
 
             vfb.clear(Color4::new(0, 0, 0, 255));
 
             level1.sprite.draw(&tile_set, &mut vfb);
 
-            character.draw(&tile_set, &mut vfb);
+            player.sprite.draw(&tile_set, &mut vfb);
             test.draw(&tile_set, &mut vfb);
 
             draw_vfb_to_fb(&mut fb, stride, &vfb);
