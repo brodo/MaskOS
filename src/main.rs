@@ -18,7 +18,7 @@ use uefi::proto::console::gop::{FrameBuffer, GraphicsOutput};
 use uefi::proto::console::text::{Key, ScanCode};
 
 use math::{Vec2, Color4};
-use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite, Player, Level};
+use graphics::{VirtualFrameBuffer, DrawFramebuffer, Tile, TileSet, Sprite, Player, Mask, Level};
 use crate::file_loader::{FileLoader};
 
 #[entry]
@@ -66,8 +66,8 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         let mut player = Player::new();
         player.sprite.pos = Vec2::new(50, 50);
 
-        let mut test = Sprite::default();
-        test.pos = Vec2::new(100, 100);
+        let mut masks = vec![Mask::new_from_color_id(0)];
+        masks[0].sprite.pos = Vec2::new(100, 100);
 
         loop {
             bt.stall(1000);
@@ -101,6 +101,30 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
                         Vec2::new(0, 1)
                     };
                 }
+                Some(Key::Printable(character)) => {
+                    if character == ' '.try_into().unwrap() {
+                        let mut dropped_mask = player.drop_mask();
+                        let mut mask_to_take = None;
+
+                        for mask in masks.iter() {
+                            if player.sprite.collides(&mask.sprite) {
+                                mask_to_take.replace(mask);
+                                break;
+                            }
+                        }
+
+                        if let Some(mask) = mask_to_take {
+                            player.take_mask(mask);
+                            let mask_index = masks.iter().position(|x| x.mask_color == mask.mask_color).unwrap();
+                            masks.remove(mask_index);
+                        }
+
+                        if let Some(mut mask) = dropped_mask {
+                            mask.sprite.pos = player.sprite.pos;
+                            masks.push(mask);
+                        }
+                    }
+                },
                 _ => ()
             }
 
@@ -111,7 +135,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
                 // move the player here, too.
                 let mut can_walk_through = true;
                 for entity in entities.iter() {
-                    if !entity.door_colors.contains(&player.mask_color) {
+                    if !player.has_mask || !entity.door_colors.contains(&player.mask_color) {
                         can_walk_through = false;
                     }
                 }
@@ -127,8 +151,11 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
             level1.sprite.draw(&tile_set, &mut vfb);
 
+            for mask in masks.iter() {
+                mask.sprite.draw(&tile_set, &mut vfb);
+            }
+
             player.sprite.draw(&tile_set, &mut vfb);
-            test.draw(&tile_set, &mut vfb);
 
             draw_vfb_to_fb(&mut fb, stride, &vfb);
 

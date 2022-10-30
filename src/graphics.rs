@@ -208,6 +208,17 @@ impl Sprite {
     fn tiles_height(&self) -> usize {
         self.entities[0].len()
     }
+
+    pub fn collides(&self, sprite: &Sprite) -> bool {
+        let (s1_start_x, s1_start_y) = (self.pos[0], self.pos[1]);
+        let (s1_end_x, s1_end_y) = (self.pos[0] + self.width() as i32, self.pos[1] + self.height() as i32);
+
+        let (s2_start_x, s2_start_y) = (sprite.pos[0], sprite.pos[1]);
+        let (s2_end_x, s2_end_y) = (sprite.pos[0] + sprite.width() as i32, sprite.pos[1] + sprite.height() as i32);
+
+        ((s1_start_x > s2_start_x && s1_start_x < s2_end_x) || (s1_end_x > s2_start_x && s1_end_x < s2_end_x))
+            || ((s1_start_y > s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y < s2_end_y))
+    }
 }
 
 impl Default for Sprite {
@@ -243,6 +254,7 @@ impl DrawFramebuffer for Sprite {
 
 pub struct Player {
     pub sprite: Sprite,
+    pub has_mask: bool,
     pub mask_color: usize,
 }
 
@@ -252,7 +264,38 @@ impl Player {
 
         Player {
             sprite: sprite,
+            has_mask: false,
             mask_color: 0,
+        }
+    }
+
+    pub fn take_mask(&mut self, mask: &Mask) {
+        self.has_mask = true;
+        self.mask_color = mask.mask_color;
+    }
+
+    pub fn drop_mask(&mut self) -> Option<Mask> {
+        if self.has_mask {
+            self.has_mask = false;
+            Some(Mask::new_from_color_id(self.mask_color))
+        } else {
+            None
+        }
+    }
+}
+
+pub struct Mask {
+    pub sprite: Sprite,
+    pub mask_color: usize,
+}
+
+impl Mask {
+    pub fn new_from_color_id(color: usize) -> Self {
+        let sprite = Sprite::default();
+
+        Mask {
+            sprite: sprite,
+            mask_color: color,
         }
     }
 }
@@ -300,10 +343,15 @@ impl Level {
             for y in first_y..end_y {
                 let entity = self.sprite.entities[x as usize][y as usize].clone();
                 if entity.wall {
-                    let collides = sprite.pos[0] < self.sprite.pos[0] + (x + 1) * (Tile::WIDTH as i32) ||
-                        sprite.pos[0] + (sprite.width() as i32) > self.sprite.pos[0] + x * (Tile::WIDTH as i32) ||
-                        sprite.pos[1] < self.sprite.pos[1] + (y + 1) * (Tile::HEIGHT as i32) ||
-                        sprite.pos[1] + (sprite.height() as i32) > self.sprite.pos[1] + y * (Tile::HEIGHT as i32);
+                    let (s1_start_x, s1_start_y) = (self.sprite.pos[0] + x * (Tile::WIDTH as i32), self.sprite.pos[1] + y * (Tile::HEIGHT as i32));
+                    let (s1_end_x, s1_end_y) = (self.sprite.pos[0] + (x + 1) * (Tile::WIDTH as i32), self.sprite.pos[1] + (y + 1) * (Tile::HEIGHT as i32));
+
+                    let (s2_start_x, s2_start_y) = (sprite.pos[0], sprite.pos[1]);
+                    let (s2_end_x, s2_end_y) = (sprite.pos[0] + sprite.width() as i32, sprite.pos[1] + sprite.height() as i32);
+
+                    let collides = ((s1_start_x > s2_start_x && s1_start_x < s2_end_x) || (s1_end_x > s2_start_x && s1_end_x < s2_end_x))
+                        || ((s1_start_y > s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y < s2_end_y));
+
                     if collides {
                         collision_entities.push(entity);
                     }
