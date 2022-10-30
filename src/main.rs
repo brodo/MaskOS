@@ -58,16 +58,11 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         let tile_set_bytes = file_loader.read_file("TileSet.bmp", None).unwrap();
         let tile_set = TileSet::new_from_buffer(tile_set_bytes);
 
-        let level1 = Level::new_from_name(&file_loader, "1");
+        let mut level = Level::new_from_name(&file_loader, "1");
 
         println!("Beginning game loop");
 
         let mut move_dir = Vec2::new(0, 0);
-        let mut player = Player::new();
-        player.sprite.pos = Vec2::new(50, 50);
-
-        let mut masks = vec![Mask::new_from_color_id(0)];
-        masks[0].sprite.pos = Vec2::new(100, 100);
 
         loop {
             bt.stall(1000);
@@ -103,25 +98,25 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
                 }
                 Some(Key::Printable(character)) => {
                     if character == ' '.try_into().unwrap() {
-                        let mut dropped_mask = player.drop_mask();
+                        let mut dropped_mask = level.player.drop_mask();
                         let mut mask_to_take = None;
 
-                        for mask in masks.iter() {
-                            if player.sprite.collides(&mask.sprite) {
+                        for mask in level.masks.iter() {
+                            if level.player.sprite.collides(&mask.sprite) {
                                 mask_to_take.replace(mask);
                                 break;
                             }
                         }
 
                         if let Some(mask) = mask_to_take {
-                            player.take_mask(mask);
-                            let mask_index = masks.iter().position(|x| x.mask_color == mask.mask_color).unwrap();
-                            masks.remove(mask_index);
+                            level.player.take_mask(mask);
+                            let mask_index = level.masks.iter().position(|x| x.mask_color == mask.mask_color).unwrap();
+                            level.masks.remove(mask_index);
                         }
 
                         if let Some(mut mask) = dropped_mask {
-                            mask.sprite.pos = player.sprite.pos;
-                            masks.push(mask);
+                            mask.sprite.pos = level.player.sprite.pos;
+                            level.masks.push(mask);
                         }
                     }
                 },
@@ -130,32 +125,32 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
             bt.stall(1000);
 
-            if let Some(entities) = level1.collides(&player.sprite, move_dir) {
+            if let Some(entities) = level.collides(&level.player.sprite, move_dir) {
                 // Handle collision: check if all walls have the correct color(s) and if so,
                 // move the player here, too.
                 let mut can_walk_through = true;
                 for entity in entities.iter() {
-                    if !player.has_mask || !entity.door_colors.contains(&player.mask_color) {
+                    if !level.player.has_mask || !entity.door_colors.contains(&level.player.mask_color) {
                         can_walk_through = false;
                     }
                 }
 
                 if can_walk_through {
-                    player.sprite.pos += move_dir;
+                    level.player.sprite.pos += move_dir;
                 }
             } else {
-                player.sprite.pos += move_dir;
+                level.player.sprite.pos += move_dir;
             }
 
             vfb.clear(Color4::new(0, 0, 0, 255));
 
-            level1.sprite.draw(&tile_set, &mut vfb);
+            level.sprite.draw(&tile_set, &mut vfb);
 
-            for mask in masks.iter() {
+            for mask in level.masks.iter() {
                 mask.sprite.draw(&tile_set, &mut vfb);
             }
 
-            player.sprite.draw(&tile_set, &mut vfb);
+            level.player.sprite.draw(&tile_set, &mut vfb);
 
             draw_vfb_to_fb(&mut fb, stride, &vfb);
 

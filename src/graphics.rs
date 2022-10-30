@@ -302,6 +302,8 @@ impl Mask {
 
 pub struct Level {
     pub sprite: Sprite,
+    pub player: Player,
+    pub masks: Vec<Mask>,
 }
 
 impl Level {
@@ -312,8 +314,10 @@ impl Level {
         let level_file_name = format!("{}.lvl", level_name);
         let level_bytes = file_loader.read_file(&level_file_name, Some("levels")).unwrap();
 
-        let mut entities = vec![vec![]];
+        let level_items_file_name = format!("{}.lvl.items", level_name);
+        let level_items_bytes = file_loader.read_file(&level_items_file_name, Some("levels")).unwrap();
 
+        let mut entities = vec![vec![]];
         for x in 0..Self::WIDTH {
             entities.push(vec![]);
 
@@ -326,8 +330,40 @@ impl Level {
             }
         }
 
+        let mut player = Player::new();
+        let mut masks = vec![];
+        for x in 0..Self::WIDTH {
+            for y in 0..Self::HEIGHT {
+                let item_id_char: char = level_items_bytes[y * (Self::WIDTH + 1) + x].into();
+                let pos = Vec2::new((x * Tile::WIDTH) as i32, (y * Tile::HEIGHT) as i32);
+                match item_id_char {
+                    'R' => {
+                        let mut mask = Mask::new_from_color_id(0);
+                        mask.sprite.pos = pos;
+                        masks.push(mask);
+                    },
+                    'G' => {
+                        let mut mask = Mask::new_from_color_id(1);
+                        mask.sprite.pos = pos;
+                        masks.push(mask);
+                    },
+                    'B' => {
+                        let mut mask = Mask::new_from_color_id(2);
+                        mask.sprite.pos = pos;
+                        masks.push(mask);
+                    },
+                    'P' => {
+                        player.sprite.pos = pos;
+                    },
+                    _ => (),
+                }
+            }
+        }
+
         Level {
             sprite: Sprite::new(entities),
+            player: player,
+            masks: masks,
         }
     }
 
