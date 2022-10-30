@@ -61,7 +61,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
 
         let entity_loader = EntityLoader::new(&file_loader);
-        let level1 = Level::new_from_name(&file_loader, &entity_loader, "1");
+        let mut level = Level::new_from_name(&file_loader, &entity_loader, "1");
 
         println!("Beginning game loop");
 
