@@ -55,13 +55,13 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
 
         /* game loop */
         let mut vfb = VirtualFrameBuffer::new();
-        let file_loader = FileLoader::new(&image, &st);
+        let file_loader = FileLoader::new(&image, &st_clone);
         let tile_set_bytes = file_loader.read_file("TileSet.bmp", None).unwrap();
         let tile_set = TileSet::new_from_buffer(tile_set_bytes);
 
-
         let entity_loader = EntityLoader::new(&file_loader);
-        let mut level = Level::new_from_name(&file_loader, &entity_loader, "1");
+        let mut level_num = 0;
+        let mut level = Level::new_from_name(&file_loader, &entity_loader, "0");
 
         println!("Beginning game loop");
 
@@ -145,6 +145,13 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
                 level.player.sprite.pos += move_dir;
             }
 
+            if level.player.sprite.collides(&level.treasure.sprite) {
+                level_num += 1;
+                let level_name = format!("{}", level_num);
+                level = Level::new_from_name(&file_loader, &level_name);
+                move_dir = Vec2::new(0, 0);
+            }
+
             vfb.clear(Color4::new(0, 0, 0, 255));
 
             level.sprite.draw(&tile_set, &mut vfb);
@@ -153,6 +160,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
                 mask.sprite.draw(&tile_set, &mut vfb);
             }
 
+            level.treasure.sprite.draw(&tile_set, &mut vfb);
             level.player.sprite.draw(&tile_set, &mut vfb);
 
             draw_vfb_to_fb(&mut fb, stride, &vfb);

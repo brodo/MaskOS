@@ -182,7 +182,7 @@ impl Sprite {
         let (s2_end_x, s2_end_y) = (sprite.pos[0] + sprite.width() as i32, sprite.pos[1] + sprite.height() as i32);
 
         ((s1_start_x > s2_start_x && s1_start_x < s2_end_x) || (s1_end_x > s2_start_x && s1_end_x < s2_end_x))
-            || ((s1_start_y > s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y < s2_end_y))
+            && ((s1_start_y > s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y < s2_end_y))
     }
 }
 
@@ -265,10 +265,26 @@ impl Mask {
     }
 }
 
+pub struct Treasure {
+    pub sprite: Sprite,
+}
+
+impl Treasure {
+    pub fn new() -> Self {
+        let sprite = Sprite::default();
+
+        Treasure {
+            sprite: sprite,
+        }
+    }
+}
+
+
 pub struct Level {
     pub sprite: Sprite,
     pub player: Player,
     pub masks: Vec<Mask>,
+    pub treasure: Treasure,
 }
 
 pub struct EntityLoader {
@@ -343,6 +359,7 @@ impl Level {
 
         let mut player = Player::new();
         let mut masks = vec![];
+        let mut treasure = Treasure::new();
         for x in 0..Self::WIDTH {
             for y in 0..Self::HEIGHT {
                 let item_id_char: char = level_items_bytes[y * (Self::WIDTH + 1) + x].into();
@@ -363,6 +380,9 @@ impl Level {
                         mask.sprite.pos = pos;
                         masks.push(mask);
                     },
+                    'T' => {
+                        treasure.sprite.pos = pos;
+                    },
                     'P' => {
                         player.sprite.pos = pos;
                     },
@@ -375,6 +395,7 @@ impl Level {
             sprite: Sprite::new(entities),
             player: player,
             masks: masks,
+            treasure: treasure,
         }
     }
 
@@ -393,11 +414,11 @@ impl Level {
                     let (s1_start_x, s1_start_y) = (self.sprite.pos[0] + x * (Tile::WIDTH as i32), self.sprite.pos[1] + y * (Tile::HEIGHT as i32));
                     let (s1_end_x, s1_end_y) = (self.sprite.pos[0] + (x + 1) * (Tile::WIDTH as i32), self.sprite.pos[1] + (y + 1) * (Tile::HEIGHT as i32));
 
-                    let (s2_start_x, s2_start_y) = (sprite.pos[0], sprite.pos[1]);
-                    let (s2_end_x, s2_end_y) = (sprite.pos[0] + sprite.width() as i32, sprite.pos[1] + sprite.height() as i32);
+                    let (s2_start_x, s2_start_y) = (moved_pos[0], moved_pos[1]);
+                    let (s2_end_x, s2_end_y) = (moved_pos[0] + sprite.width() as i32, moved_pos[1] + sprite.height() as i32);
 
                     let collides = ((s1_start_x > s2_start_x && s1_start_x < s2_end_x) || (s1_end_x > s2_start_x && s1_end_x < s2_end_x))
-                        || ((s1_start_y > s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y < s2_end_y));
+                        && ((s1_start_y > s2_start_y && s1_start_y < s2_end_y) || (s1_end_y > s2_start_y && s1_end_y < s2_end_y));
 
                     if collides {
                         collision_entities.push(entity);
