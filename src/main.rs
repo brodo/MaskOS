@@ -12,7 +12,7 @@ pub mod file_loader;
 
 
 use uefi::prelude::*;
-use uefi_services::println;
+use uefi_services::{print, println};
 use uefi::table::boot::{OpenProtocolAttributes, OpenProtocolParams};
 use uefi::proto::console::gop::{FrameBuffer, GraphicsOutput};
 use uefi::proto::console::text::{Key, ScanCode};
@@ -44,7 +44,42 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
             )
             .expect("failed to open Graphics Output Protocol");
 
-        println!("GOP inited succesfully!");
+        let intro = "Welcome to the magical mansion of Maunz!\n\
+            \n\
+            You have been too curious and now you are trapped!\n\
+            (insert mad laughter here)\n\
+            \n\
+            The only way out is to solve my wonderful puzzles,\n\
+            but don't believe they are easy!\n\
+            \n\
+            Mysterious masks might help you walking through\n\
+            some doors in this mansion.\n\
+            You can take or drop them by pressing SPACE.\n\
+            \n\
+            Now find your way out with the ARROW keys\n\
+            I will have watch you.\n\
+            (insert more laughter here, because there simply is\n\
+            no sound output available)\n";
+
+        for character in intro.chars() {
+            print!("{}", character);
+            bt.stall(50000);
+        }
+
+        for n in (1..4).rev() {
+            print!("{}", n);
+            bt.stall(500000);
+
+            for _ in 0..3 {
+                print!(".");
+                bt.stall(500000);
+            }
+
+            print!(" ");
+            bt.stall(500000);
+        }
+
+        //println!("GOP inited succesfully!");
 
         let (width, height) = choose_graphics_mode(gop, st.unsafe_clone(), bt);
 
@@ -63,7 +98,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
         let mut level_num = 0;
         let mut level = Level::new_from_name(&file_loader, &entity_loader, "0");
 
-        println!("Beginning game loop");
+        //println!("Beginning game loop");
 
         let mut move_dir = Vec2::new(0, 0);
 
