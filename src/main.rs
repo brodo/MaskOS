@@ -57,7 +57,7 @@ unsafe fn main(image: Handle, mut st: SystemTable<Boot>) -> Status {
             You can take or drop them by pressing SPACE.\n\
             \n\
             Now find your way out with the ARROW keys\n\
-            I will have watch you.\n\
+            I will watch you.\n\
             (insert more laughter here, because there simply is\n\
             no sound output available)\n";
 

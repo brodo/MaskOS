@@ -1,5 +1,5 @@
 [package]
-name = "uefi_app"
+name = "mask_os"
 version = "0.1.0"
 edition = "2021"
 
